@@ -2,44 +2,38 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Pusheen Slicer</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; user-select:none; }
-html, body { width:100%; height:100%; font-family:'Segoe UI',sans-serif; background:#f5e8d5; }
-/* NO overflow:hidden on body — it breaks position:fixed */
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; font-family:'Segoe UI',sans-serif; background:#f5e8d5; overflow:hidden; }
 
-/* ── TOP BAR ─────────────────────────────────────────────────────── */
+/* ── TOP BAR ── */
 #topbar {
-  position:fixed; top:0; left:0; right:0; height:58px; z-index:500;
+  position:fixed; top:0; left:0; right:0; height:52px; z-index:500;
   background:linear-gradient(135deg,#cc2222,#881111);
   display:flex; align-items:center; justify-content:space-between;
-  padding:0 24px;
+  padding:0 14px;
   box-shadow:0 3px 14px rgba(0,0,0,0.45);
   border-bottom:3px solid rgba(255,80,80,.4);
 }
-.tb-title { font-size:20px; font-weight:900; color:#ffd700; letter-spacing:3px; text-shadow:2px 2px 0 rgba(0,0,0,.5); }
-.tb-mid   { font-size:14px; font-weight:bold; color:#fff; letter-spacing:1px; text-shadow:1px 1px 4px rgba(0,0,0,.4); }
-.tb-right { text-align:right; }
-.tb-val   { font-size:28px; font-weight:900; color:#fff; line-height:1; }
-.tb-lbl   { font-size:10px; color:rgba(255,255,200,.9); letter-spacing:2px; }
+.tb-title { font-size:17px; font-weight:900; color:#ffd700; letter-spacing:2px; text-shadow:2px 2px 0 rgba(0,0,0,.5); white-space:nowrap; }
+.tb-mid   { font-size:13px; font-weight:bold; color:#fff; }
 #shieldBtn {
   background:linear-gradient(135deg,#5b2d8e,#9b59b6);
-  border:2px solid #7d3c98; border-radius:20px;
-  color:#ffd700; font-weight:900; font-size:13px;
-  padding:6px 14px; cursor:pointer; letter-spacing:1px;
-  box-shadow:0 0 10px rgba(155,89,182,.5); transition:all .2s;
-  white-space:nowrap;
+  border:2px solid #7d3c98; border-radius:18px;
+  color:#ffd700; font-weight:900; font-size:11px;
+  padding:5px 10px; cursor:pointer;
+  box-shadow:0 0 8px rgba(155,89,182,.5); transition:all .2s;
+  white-space:nowrap; flex-shrink:0;
 }
-#shieldBtn:hover { box-shadow:0 0 18px rgba(155,89,182,.9); transform:scale(1.05); }
-#shieldBtn.active { background:linear-gradient(135deg,#2ecc71,#27ae60); border-color:#1e8449; box-shadow:0 0 18px rgba(46,204,113,.7); animation:shieldBtnPulse 1s ease-in-out infinite; }
-@keyframes shieldBtnPulse { 0%,100%{box-shadow:0 0 14px rgba(46,204,113,.7)} 50%{box-shadow:0 0 28px rgba(46,204,113,1)} }
-@keyframes shieldGlow { 0%,100%{filter:drop-shadow(0 0 14px rgba(100,220,255,.9)) drop-shadow(0 0 30px rgba(80,180,255,.5))} 50%{filter:drop-shadow(0 0 28px rgba(150,240,255,1)) drop-shadow(0 0 55px rgba(100,200,255,.7))} }
-#catCanvas.shielded { animation:shieldGlow 1.4s ease-in-out infinite; }
+#shieldBtn.active { background:linear-gradient(135deg,#2ecc71,#27ae60); border-color:#1e8449; animation:shieldBtnPulse 1s ease-in-out infinite; }
+@keyframes shieldBtnPulse { 0%,100%{box-shadow:0 0 10px rgba(46,204,113,.7)} 50%{box-shadow:0 0 22px rgba(46,204,113,1)} }
 
-/* ── SCENE ─────────────────────────────────────────────────────────── */
+/* ── SCENE ── */
 .scene {
-  position:fixed; top:58px; left:0; right:0; bottom:0;
+  position:fixed; top:52px; left:0; right:0; bottom:0;
   display:flex; flex-direction:column; overflow:hidden;
 }
 .wall {
@@ -47,125 +41,111 @@ html, body { width:100%; height:100%; font-family:'Segoe UI',sans-serif; backgro
   background:linear-gradient(180deg,#f5e8d5,#eddfc0);
   min-height:0;
 }
-
-/* Shoji */
 .shoji {
-  position:absolute; top:14px; right:30px;
-  width:165px; height:132px;
-  background:rgba(255,248,235,.75); border:4px solid #8B5E3C; border-radius:4px;
+  position:absolute; top:10px; right:20px;
+  width:130px; height:104px;
+  background:rgba(255,248,235,.75); border:3px solid #8B5E3C; border-radius:4px;
   display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(3,1fr);
   overflow:hidden; box-shadow:4px 4px 12px rgba(0,0,0,.18);
 }
 .shoji-cell { border:2px solid #8B5E3C; background:rgba(255,250,240,.8); }
 .shoji-cell:nth-child(3n){ background:rgba(255,220,180,.35); }
+.lantern { position:absolute; left:25px; top:4px; text-align:center; }
+.ln-str  { width:2px; height:14px; background:#5a3010; margin:0 auto; }
+.ln-cap  { width:38px; height:8px; background:#8a1515; border-radius:3px; margin:0 auto; }
+.ln-body { width:32px; height:44px; margin:0 auto; background:linear-gradient(135deg,#e8443a,#bb1a1a); border-radius:50%/40%; border:2px solid #8a1515; display:flex; align-items:center; justify-content:center; color:#ffd700; font-size:16px; font-weight:bold; text-shadow:0 0 8px rgba(255,200,0,.9); box-shadow:0 0 12px rgba(220,50,30,.5); }
+.ln-tassel { width:4px; height:10px; background:#ffd700; margin:0 auto; border-radius:0 0 3px 3px; }
+.blossom { position:absolute; pointer-events:none; animation:floatB linear infinite; }
+@keyframes floatB { 0%{transform:translateY(-30px) rotate(0deg);opacity:0} 8%{opacity:.75} 88%{opacity:.35} 100%{transform:translateY(100vh) rotate(540deg);opacity:0} }
 
-/* Lantern */
-.lantern { position:absolute; left:40px; top:4px; text-align:center; }
-.ln-str  { width:2px; height:18px; background:#5a3010; margin:0 auto; }
-.ln-cap  { width:46px; height:10px; background:#8a1515; border-radius:3px; margin:0 auto; }
-.ln-body {
-  width:38px; height:52px; margin:0 auto;
-  background:linear-gradient(135deg,#e8443a,#bb1a1a);
-  border-radius:50%/40%; border:2px solid #8a1515;
-  display:flex; align-items:center; justify-content:center;
-  color:#ffd700; font-size:19px; font-weight:bold;
-  text-shadow:0 0 8px rgba(255,200,0,.9);
-  box-shadow:0 0 16px rgba(220,50,30,.5);
-}
-.ln-tassel { width:5px; height:14px; background:#ffd700; margin:0 auto; border-radius:0 0 3px 3px; }
-
-/* Blossoms */
-.blossom {
-  position:absolute; pointer-events:none;
-  animation:floatB linear infinite;
-}
-@keyframes floatB {
-  0%   { transform:translateY(-30px) rotate(0deg); opacity:0; }
-  8%   { opacity:.75; }
-  88%  { opacity:.35; }
-  100% { transform:translateY(100vh) rotate(540deg); opacity:0; }
-}
-
-/* Counter */
-.counter { height:185px; position:relative; flex-shrink:0; }
-.counter-top {
-  position:absolute; top:0; left:0; right:0; height:24px;
-  background:linear-gradient(180deg,#d4954a,#b86e28);
-  border-top:4px solid #8B5E3C; box-shadow:0 4px 14px rgba(0,0,0,.3); z-index:2;
-}
-.counter-body {
-  position:absolute; top:24px; left:0; right:0; bottom:0;
-  background:linear-gradient(180deg,#9a5f38,#784020);
-}
-.counter-body::before {
-  content:''; position:absolute; inset:0;
-  background:repeating-linear-gradient(90deg,transparent 0,transparent 36px,rgba(0,0,0,.04) 36px,rgba(0,0,0,.04) 38px);
-}
-.mat {
-  position:absolute; left:50px; top:-10px; width:160px; height:12px;
-  background:repeating-linear-gradient(90deg,#8fbc6a 0,#8fbc6a 11px,#6a9a4a 11px,#6a9a4a 13px);
-  border-radius:3px; border:1px solid #5a8a3a; z-index:5;
-}
-.sushi-row { position:absolute; top:-30px; left:62px; display:flex; gap:12px; z-index:5; }
+.counter { height:155px; position:relative; flex-shrink:0; }
+.counter-top { position:absolute; top:0; left:0; right:0; height:22px; background:linear-gradient(180deg,#d4954a,#b86e28); border-top:3px solid #8B5E3C; box-shadow:0 4px 14px rgba(0,0,0,.3); z-index:2; }
+.counter-body { position:absolute; top:22px; left:0; right:0; bottom:0; background:linear-gradient(180deg,#9a5f38,#784020); }
+.counter-body::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent 0,transparent 36px,rgba(0,0,0,.04) 36px,rgba(0,0,0,.04) 38px); }
+.mat { position:absolute; left:40px; top:-8px; width:130px; height:10px; background:repeating-linear-gradient(90deg,#8fbc6a 0,#8fbc6a 11px,#6a9a4a 11px,#6a9a4a 13px); border-radius:3px; border:1px solid #5a8a3a; z-index:5; }
+.sushi-row { position:absolute; top:-26px; left:50px; display:flex; gap:10px; z-index:5; }
 .nigiri { display:flex; flex-direction:column; align-items:center; }
-.nf { width:36px; height:14px; border-radius:3px; box-shadow:0 2px 4px rgba(0,0,0,.3); }
-.nr { width:32px; height:16px; background:#f8f4ec; border-radius:3px 3px 7px 7px; border:1px solid #ddd; }
+.nf { width:30px; height:12px; border-radius:3px; box-shadow:0 2px 4px rgba(0,0,0,.3); }
+.nr { width:26px; height:14px; background:#f8f4ec; border-radius:3px 3px 7px 7px; border:1px solid #ddd; }
 .fs{background:linear-gradient(135deg,#ff8c5a,#ee6030)} .ft{background:linear-gradient(135deg,#cc3355,#991122)} .fe{background:linear-gradient(135deg,#8B4513,#5a2d0c)}
-.soy { position:absolute; right:68px; top:-48px; width:22px; height:52px; background:linear-gradient(180deg,#cc2222,#991111); border-radius:7px 7px 3px 3px; border:2px solid #771111; z-index:5; }
-.soy::before { content:''; position:absolute; top:-9px; left:50%; transform:translateX(-50%); width:9px; height:13px; background:#555; border-radius:3px 3px 0 0; }
-.chops { position:absolute; right:105px; top:-34px; z-index:5; transform:rotate(-15deg); }
-.chop { width:4px; height:44px; background:linear-gradient(180deg,#f5d090,#c8902a); border-radius:2px; display:inline-block; margin:0 2px; }
+.soy { position:absolute; right:55px; top:-40px; width:18px; height:44px; background:linear-gradient(180deg,#cc2222,#991111); border-radius:6px 6px 3px 3px; border:2px solid #771111; z-index:5; }
+.soy::before { content:''; position:absolute; top:-7px; left:50%; transform:translateX(-50%); width:7px; height:10px; background:#555; border-radius:3px 3px 0 0; }
+.chops { position:absolute; right:80px; top:-28px; z-index:5; transform:rotate(-15deg); }
+.chop { width:3px; height:36px; background:linear-gradient(180deg,#f5d090,#c8902a); border-radius:2px; display:inline-block; margin:0 2px; }
 
-/* ── CANVAS ─────────────────────────────────────────────────────────── */
+/* ── CANVAS ── */
 #catCanvas {
-  position:fixed; bottom:161px; left:50%; transform:translateX(-50%);
+  position:fixed; bottom:133px; left:50%; transform:translateX(-50%);
   cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Cpolygon points='2,34 7,29 26,10 31,15 12,34' fill='%23c8c8c8' stroke='%23666' stroke-width='1.2'/%3E%3Crect x='24' y='1' width='11' height='8' rx='2' fill='%23a07030' stroke='%23704010' stroke-width='1'/%3E%3C/svg%3E") 2 34, crosshair;
   z-index:10;
 }
+@keyframes shieldGlow { 0%,100%{filter:drop-shadow(0 0 14px rgba(100,220,255,.9))} 50%{filter:drop-shadow(0 0 28px rgba(150,240,255,1))} }
+#catCanvas.shielded { animation:shieldGlow 1.4s ease-in-out infinite; }
 
-/* ── DOTS ─────────────────────────────────────────────────────────── */
-.cuts-track {
-  position:fixed; bottom:143px; left:50%; transform:translateX(-50%);
-  display:flex; gap:6px; z-index:20;
+/* ── DOTS ── */
+.cuts-track { position:fixed; bottom:116px; left:50%; transform:translateX(-50%); display:flex; gap:5px; z-index:20; }
+.cut-dot { width:13px; height:13px; border-radius:50%; background:#d4a574; border:2px solid #8B5E3C; transition:all .18s; }
+.cut-dot.done { background:#cc2222; border-color:#881111; box-shadow:0 0 6px rgba(200,30,30,.7); transform:scale(1.2); }
+
+/* ── ENERGY BAR ── */
+#energyWrap {
+  position:fixed; bottom:84px; left:50%; transform:translateX(-50%);
+  width:220px; z-index:20; text-align:center;
 }
-.cut-dot { width:15px; height:15px; border-radius:50%; background:#d4a574; border:3px solid #8B5E3C; transition:all .18s; }
-.cut-dot.done { background:#cc2222; border-color:#881111; box-shadow:0 0 7px rgba(200,30,30,.7); transform:scale(1.2); }
+#energyBarOuter {
+  height:16px; background:rgba(0,0,0,0.35); border-radius:8px;
+  border:2px solid rgba(180,30,30,0.6); overflow:hidden; margin-bottom:4px;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.3);
+}
+#energyFill {
+  height:100%; width:100%;
+  background:linear-gradient(90deg,#8B0000,#cc2222,#ff5533,#ff9955);
+  border-radius:6px; transition:width 0.4s ease;
+  position:relative;
+}
+#energyFill::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,0.25),transparent);
+  border-radius:6px;
+}
+#energyInfo { display:flex; align-items:center; justify-content:space-between; }
+#energyTxt { font-size:12px; color:#8a3020; font-weight:900; letter-spacing:0.5px; }
+#energyBtn {
+  font-size:10px; padding:3px 8px; border:1px solid #7d3c98;
+  border-radius:10px; background:linear-gradient(135deg,rgba(91,45,142,0.8),rgba(155,89,182,0.8));
+  color:#ffd700; font-weight:900; cursor:pointer; white-space:nowrap;
+}
+@keyframes energyLow { 0%,100%{border-color:rgba(255,100,0,0.5)} 50%{border-color:rgba(255,100,0,1)} }
+#energyBarOuter.low { animation:energyLow 0.8s ease-in-out infinite; }
 
+/* ── SCORE ── */
+#scoreBox {
+  position:fixed; bottom:10px; left:12px; z-index:20;
+  background:rgba(0,0,0,0.5); border-radius:10px;
+  padding:5px 10px; text-align:center;
+  backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.1);
+}
+#scoreNum { font-size:20px; font-weight:900; color:#fff; line-height:1; }
+#scoreLbl { font-size:9px; color:rgba(255,220,150,0.9); letter-spacing:1px; font-weight:bold; }
 
-/* ── FX ─────────────────────────────────────────────────────────── */
-@keyframes floUp { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-72px) scale(1.45)} }
-.flt { position:fixed; font-size:22px; font-weight:900; color:#cc2222; pointer-events:none; animation:floUp .75s ease-out forwards; z-index:999; text-shadow:0 2px 6px rgba(0,0,0,.35); }
+/* ── FX ── */
+@keyframes floUp { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-80px) scale(1.4)} }
+.flt { position:fixed; font-size:20px; font-weight:900; color:#cc2222; pointer-events:none; animation:floUp .75s ease-out forwards; z-index:999; text-shadow:0 2px 6px rgba(0,0,0,.35); }
+.flt.meat { color:#e8763a; font-size:24px; }
 
 @keyframes cel { 0%{opacity:0;transform:translateX(-50%) scale(.3) rotate(-8deg)} 25%{opacity:1;transform:translateX(-50%) scale(1.3) rotate(4deg)} 70%{opacity:1;transform:translateX(-50%) scale(1.1)} 100%{opacity:0;transform:translateX(-50%) scale(.85) translateY(-30px)} }
-.celebrate-txt { position:fixed; left:50%; top:70px; font-size:36px; font-weight:900; color:#cc2222; text-shadow:3px 3px 0 #ffd700,0 0 16px rgba(255,100,0,.7); animation:cel 1.8s ease-out forwards; pointer-events:none; z-index:999; white-space:nowrap; }
+.celebrate-txt { position:fixed; left:50%; top:70px; font-size:34px; font-weight:900; color:#cc2222; text-shadow:3px 3px 0 #ffd700,0 0 16px rgba(255,100,0,.7); animation:cel 1.8s ease-out forwards; pointer-events:none; z-index:999; white-space:nowrap; }
 
-/* ── GORE ─────────────────────────────────────────────────────────── */
-@keyframes bloodFly {
-  0%   { opacity:1; transform:translate(0,0) scale(1) rotate(var(--br)); }
-  100% { opacity:0; transform:translate(var(--bx),var(--by)) scale(0.15) rotate(var(--br)); }
-}
-.blood {
-  position:fixed; pointer-events:none; z-index:997; border-radius:50% 40% 60% 30%;
-  background:radial-gradient(circle at 30% 30%, #ff4422, #990000);
-  animation:bloodFly 0.7s cubic-bezier(.1,.8,.3,1) forwards;
-}
-@keyframes shake {
-  0%  {transform:translate(0,0) rotate(0)}
-  15% {transform:translate(-6px,-4px) rotate(-.4deg)}
-  30% {transform:translate(6px,4px) rotate(.4deg)}
-  45% {transform:translate(-5px,2px) rotate(-.3deg)}
-  60% {transform:translate(5px,-2px) rotate(.3deg)}
-  80% {transform:translate(-2px,1px) rotate(-.1deg)}
-  100%{transform:translate(0,0) rotate(0)}
-}
+/* ── GORE ── */
+@keyframes bloodFly { 0%{opacity:1;transform:translate(0,0) scale(1) rotate(var(--br))} 100%{opacity:0;transform:translate(var(--bx),var(--by)) scale(0.15) rotate(var(--br))} }
+.blood { position:fixed; pointer-events:none; z-index:997; border-radius:50% 40% 60% 30%; background:radial-gradient(circle at 30% 30%,#ff4422,#990000); animation:bloodFly 0.7s cubic-bezier(.1,.8,.3,1) forwards; }
+
+/* ── MINI PUN PUN ── */
+@keyframes miniPunFly { 0%{opacity:1;transform:translate(0,0) scale(1) rotate(0deg)} 100%{opacity:0;transform:translate(var(--mx),var(--my)) scale(0.1) rotate(var(--mr))} }
+.mini-pun { position:fixed; pointer-events:none; z-index:998; width:38px; height:38px; object-fit:cover; border-radius:8px; animation:miniPunFly 0.7s ease-out forwards; }
+
+@keyframes shake { 0%{transform:translate(0,0) rotate(0)} 15%{transform:translate(-6px,-4px) rotate(-.4deg)} 30%{transform:translate(6px,4px) rotate(.4deg)} 45%{transform:translate(-5px,2px) rotate(-.3deg)} 60%{transform:translate(5px,-2px) rotate(.3deg)} 80%{transform:translate(-2px,1px) rotate(-.1deg)} 100%{transform:translate(0,0) rotate(0)} }
 .screen-shake { animation:shake 0.35s ease-out; }
-#scoreBox {
-  position:fixed; bottom:12px; left:16px; z-index:20;
-  background:rgba(0,0,0,0.45); border-radius:12px;
-  padding:6px 12px; text-align:center;
-  backdrop-filter:blur(4px);
-}
-#scoreBox .tb-val { font-size:22px; color:#fff; }
 </style>
 </head>
 <body>
@@ -173,27 +153,25 @@ html, body { width:100%; height:100%; font-family:'Segoe UI',sans-serif; backgro
 <div id="topbar">
   <div class="tb-title">🔪 PUSHEEN SLICER</div>
   <div class="tb-mid" id="cutsStatus"></div>
-  <button id="shieldBtn" onclick="buyShield()">🐱 Спасти Пун Пуна · 50 ⭐</button>
+  <button id="shieldBtn" onclick="buyShield()">🐱 Спасти Пун Пуна · 50⭐</button>
 </div>
+
 <div id="scoreBox">
-  <div class="tb-val" id="scoreNum">0</div>
-  <div style="font-size:10px;color:#8a5a30;letter-spacing:2px;font-weight:bold;">🍖</div>
+  <div id="scoreNum">0</div>
+  <div id="scoreLbl">🍖 МЯСА</div>
 </div>
 
 <div class="scene">
   <div class="wall" id="wall">
     <div class="lantern">
-      <div class="ln-str"></div>
-      <div class="ln-cap"></div>
+      <div class="ln-str"></div><div class="ln-cap"></div>
       <div class="ln-body">寿</div>
-      <div class="ln-cap"></div>
-      <div class="ln-tassel"></div>
+      <div class="ln-cap"></div><div class="ln-tassel"></div>
     </div>
     <div class="shoji" id="shoji"></div>
   </div>
   <div class="counter">
-    <div class="counter-top"></div>
-    <div class="counter-body"></div>
+    <div class="counter-top"></div><div class="counter-body"></div>
     <div class="mat"></div>
     <div class="sushi-row">
       <div class="nigiri"><div class="nf fs"></div><div class="nr"></div></div>
@@ -208,33 +186,36 @@ html, body { width:100%; height:100%; font-family:'Segoe UI',sans-serif; backgro
 <canvas id="catCanvas"></canvas>
 <div class="cuts-track" id="cutsDots"></div>
 
+<div id="energyWrap">
+  <div id="energyBarOuter"><div id="energyFill"></div></div>
+  <div id="energyInfo">
+    <span id="energyTxt">🥩 500 / 500</span>
+    <button id="energyBtn" onclick="buyEnergyRefill()">⚡ Заряд · 15⭐</button>
+  </div>
+</div>
+
 <script>
 // ── TELEGRAM ──────────────────────────────────────────────────────────────────
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
-const INVOICE_URL = 'https://t.me/$S8zxxy4r4ElnFQAAB0MimyQLETA';
-let shieldActive = false, shieldEnd = 0, shieldTick = null;
+const SHIELD_INVOICE = 'https://t.me/$S8zxxy4r4ElnFQAAB0MimyQLETA';
+const ENERGY_INVOICE = 'https://t.me/$drInhS4r4El5FQAAoseioQRrI54';
 
+// ── SHIELD ──────────────────────────────────────────────────────────────────
+let shieldActive = false, shieldEnd = 0, shieldTick = null;
 function buyShield() {
   if (shieldActive) return;
   if (tg) {
-    tg.openInvoice(INVOICE_URL, status => { if (status === 'paid') activateShield(); });
-  } else {
-    activateShield(); // debug mode без TG
-  }
+    tg.openInvoice(SHIELD_INVOICE, s => { if (s === 'paid') activateShield(); });
+  } else { activateShield(); }
 }
 function activateShield() {
-  shieldActive = true;
-  shieldEnd = Date.now() + 60000;
+  shieldActive = true; shieldEnd = Date.now() + 60000;
   canvas.classList.add('shielded');
   clearInterval(shieldTick);
   shieldTick = setInterval(() => {
-    if (Date.now() >= shieldEnd) {
-      shieldActive = false;
-      canvas.classList.remove('shielded');
-      clearInterval(shieldTick);
-    }
+    if (Date.now() >= shieldEnd) { shieldActive = false; canvas.classList.remove('shielded'); clearInterval(shieldTick); }
     updateShieldBtn();
   }, 500);
   updateShieldBtn();
@@ -242,65 +223,92 @@ function activateShield() {
 function updateShieldBtn() {
   const btn = document.getElementById('shieldBtn');
   if (shieldActive) {
-    const sec = Math.ceil((shieldEnd - Date.now()) / 1000);
-    btn.textContent = `🛡️ ${sec}с`;
+    btn.textContent = `🛡️ ${Math.ceil((shieldEnd - Date.now())/1000)}с`;
     btn.classList.add('active');
   } else {
-    btn.textContent = '🛡️ 50 ⭐ Щит';
+    btn.textContent = '🐱 Спасти Пун Пуна · 50⭐';
     btn.classList.remove('active');
   }
 }
 
-// ── CONFIG ────────────────────────────────────────────────────────────────────
-const MAX_CUTS     = 7;
-const CAT_H        = 215;  // display height
-const SLICE_OVERLAP = 36;  // px each slice peeks from behind the next
+// ── ENERGY ──────────────────────────────────────────────────────────────────
+const MAX_ENERGY = 500;
+let energy = MAX_ENERGY, energyNotified = true;
 
-// Where each cut happens as a fraction of image width
-// Cut fracs from RIGHT side — max 0.62 so head/face never gets sliced off
+function buyEnergyRefill() {
+  if (energy >= MAX_ENERGY) return;
+  if (tg) {
+    tg.openInvoice(ENERGY_INVOICE, s => {
+      if (s === 'paid') {
+        energy = MAX_ENERGY; updateEnergyUI();
+        spawnFlt('⚡ +500 🥩', window.innerWidth/2, window.innerHeight*0.4);
+      }
+    });
+  } else { energy = MAX_ENERGY; updateEnergyUI(); }
+}
+function updateEnergyUI() {
+  const pct = energy / MAX_ENERGY * 100;
+  document.getElementById('energyFill').style.width = pct + '%';
+  document.getElementById('energyTxt').textContent = `🥩 ${energy} / ${MAX_ENERGY}`;
+  document.getElementById('energyBarOuter').classList.toggle('low', energy < 100);
+}
+setInterval(() => {
+  if (energy < MAX_ENERGY) {
+    energy = Math.min(MAX_ENERGY, energy + 1);
+    updateEnergyUI();
+    if (energy >= MAX_ENERGY && !energyNotified) {
+      energyNotified = true;
+      if (tg) try { tg.showPopup({ message: '🥩 Мясо восстановлено! Режь Пун Пуна!' }); } catch(e) {}
+    }
+  }
+}, 1000);
+
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const MAX_CUTS = 7;
+const CAT_H    = 215;
 const CUT_FRAC = [0.10, 0.18, 0.27, 0.36, 0.45, 0.54, 0.62];
+const HALF_CROP_X   = 0.63;
+const SLICE_OVL_FAN = 28;
+const FAN_H_ARR     = [0, 0, 0, 0, 162, 180, 198, 215];
 
-let cuts        = 0;
-let score       = 0;
-let totalSliced = 0;
-let animating   = false;
+let cuts = 0, score = 0, totalSliced = 0, animating = false;
+const mobileSlashes = []; // [{x1,y1,x2,y2,alpha,w}]
 
-// ── IMAGES ───────────────────────────────────────────────────────────────────
+// ── IMAGES ──────────────────────────────────────────────────────────────────
 const IMG_SIT    = new Image(); IMG_SIT.src    = 'cat_sit.webp';
-const IMG_FLAT   = new Image(); IMG_FLAT.src   = 'cat_lie.webp';  // lying Pusheen — body
-const IMG_HALF   = new Image(); IMG_HALF.src   = 'cat_half.webp'; // cross-section slices
+const IMG_FLAT   = new Image(); IMG_FLAT.src   = 'cat_lie.webp';
+const IMG_HALF   = new Image(); IMG_HALF.src   = 'cat_half.webp';
 const IMG_SLICED = new Image(); IMG_SLICED.src = 'cat_sliced.webp';
 
 const canvas = document.getElementById('catCanvas');
 const ctx    = canvas.getContext('2d');
 
-// cat_half.webp = sticker with LEFT: cat front half, RIGHT: meat cross-section
-// For stage 2 we show the FULL sticker. For stage 3 we crop just the cross-section.
-const HALF_CROP_X = 0.63;
-const SLICE_H_FAN   = 155;
-const SLICE_OVL_FAN = 28;
+const isMobile = () => window.innerWidth < 560;
 
-function stickerW() { // full sticker display width at CAT_H
-  return IMG_HALF.naturalWidth
-    ? Math.round(CAT_H * IMG_HALF.naturalWidth / IMG_HALF.naturalHeight)
-    : Math.round(CAT_H * 2.75);
-}
-function csW(h) { // cross-section crop width at height h
+function csW(h) {
   if (!IMG_HALF.naturalWidth) return Math.round(h * 0.75);
-  const cw = IMG_HALF.naturalWidth * (1 - HALF_CROP_X);
-  return Math.round(h * cw / IMG_HALF.naturalHeight);
+  return Math.round(h * IMG_HALF.naturalWidth * (1 - HALF_CROP_X) / IMG_HALF.naturalHeight);
 }
 function loafW() {
-  return IMG_FLAT.naturalWidth
-    ? Math.round(CAT_H * IMG_FLAT.naturalWidth / IMG_FLAT.naturalHeight)
-    : Math.round(CAT_H * 1.6);
+  return IMG_FLAT.naturalWidth ? Math.round(CAT_H * IMG_FLAT.naturalWidth / IMG_FLAT.naturalHeight) : Math.round(CAT_H * 1.6);
+}
+function sitDims() { // returns {w,h} for mobile cat_sit display
+  const maxH = Math.min(Math.round((window.innerHeight - 52) * 0.55), 320);
+  const aspect = IMG_SIT.naturalWidth ? IMG_SIT.naturalWidth / IMG_SIT.naturalHeight : 0.85;
+  return { h: maxH, w: Math.round(maxH * aspect) };
 }
 
+// ── CANVAS INIT ──────────────────────────────────────────────────────────────
 function initCanvas() {
-  const bigSliceW = csW(CAT_H);
-  const fanTotalW = (MAX_CUTS - 1) * SLICE_OVL_FAN + csW(215); // 215 = max fan height
-  canvas.width  = loafW() + Math.max(bigSliceW, fanTotalW) + 80;
-  canvas.height = CAT_H + 15;
+  if (isMobile()) {
+    const d = sitDims();
+    canvas.width  = d.w + 20;
+    canvas.height = d.h + 15;
+  } else {
+    const fanTotalW = (MAX_CUTS - 1) * SLICE_OVL_FAN + csW(215);
+    canvas.width  = loafW() + Math.max(csW(CAT_H), fanTotalW) + 80;
+    canvas.height = CAT_H + 15;
+  }
 }
 
 const onImgLoad = () => { initCanvas(); draw(); applyScale(); };
@@ -308,74 +316,121 @@ IMG_FLAT.onload = onImgLoad;
 IMG_HALF.onload = onImgLoad;
 IMG_SIT.onload  = onImgLoad;
 
-// fan height per cut count (4-7 progressively bigger)
-const FAN_H_ARR = [0, 0, 0, 0, 162, 180, 198, 215];
+// ── DRAW MOBILE (sitting cat + slash marks) ──────────────────────────────────
+function drawMobile() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!IMG_SIT.naturalWidth) return;
+  const d = sitDims();
+  const x = (canvas.width - d.w) / 2, y = 15;
+  ctx.drawImage(IMG_SIT, x, y, d.w, d.h);
+  // slash marks
+  ctx.save(); ctx.lineCap = 'round';
+  for (const s of mobileSlashes) {
+    ctx.strokeStyle = `rgba(200,20,20,${s.alpha})`;
+    ctx.lineWidth = s.w;
+    ctx.beginPath(); ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2); ctx.stroke();
+  }
+  ctx.restore();
+}
+function addMobileSlash() {
+  const cx = 15 + Math.random() * (canvas.width - 30);
+  const cy = 20 + Math.random() * (canvas.height - 30);
+  const len = 50 + Math.random() * 120;
+  const a = (-35 + Math.random() * 70) * Math.PI / 180;
+  mobileSlashes.push({
+    x1: cx - Math.cos(a)*len/2, y1: cy - Math.sin(a)*len/2,
+    x2: cx + Math.cos(a)*len/2, y2: cy + Math.sin(a)*len/2,
+    alpha: 0.45 + mobileSlashes.length * 0.08,
+    w: 2 + mobileSlashes.length * 0.35
+  });
+}
 
-// ── MAIN DRAW ─────────────────────────────────────────────────────────────────
-function draw(sliceDroop) {
+// ── DRAW DESKTOP (3-stage slicing) ──────────────────────────────────────────
+function drawDesktop(sliceDroop) {
   sliceDroop = sliceDroop || [];
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (!IMG_FLAT.naturalWidth || !IMG_HALF.naturalWidth) return;
 
-  const catY   = canvas.height - CAT_H;
-  const lw     = loafW();
+  const catY = canvas.height - CAT_H;
+  const lw   = loafW();
   const bigSliceW = csW(CAT_H);
   const fanTotalW = (MAX_CUTS - 1) * SLICE_OVL_FAN + csW(215);
-  const ox     = Math.round((canvas.width - lw - Math.max(bigSliceW, fanTotalW)) / 2);
+  const ox = Math.round((canvas.width - lw - Math.max(bigSliceW, fanTotalW)) / 2);
 
   const cutFrac  = cuts > 0 ? CUT_FRAC[cuts - 1] : 0;
   const bodyW    = Math.round((1 - cutFrac) * lw);
   const dispW    = cuts === 0 ? lw : bodyW;
   const cutEdgeX = ox + dispW;
 
-  // ── Body ────────────────────────────────────────────────────────────────
   if (!sliceDroop.length) {
     ctx.save();
     ctx.beginPath(); ctx.rect(ox, catY, dispW, CAT_H); ctx.clip();
     ctx.drawImage(IMG_FLAT, 0, 0, IMG_FLAT.naturalWidth, IMG_FLAT.naturalHeight, ox, catY, lw, CAT_H);
     ctx.restore();
   }
-
   if (cuts === 0) return;
 
   const nW = IMG_HALF.naturalWidth, nH = IMG_HALF.naturalHeight;
   const srcX = Math.round(nW * HALF_CROP_X), srcWc = nW - srcX;
-  const fanX = cutEdgeX - 22; // 22px overlap to cover seam
+  const fanX = cutEdgeX - 22;
 
-  // ── STAGE 2 (cuts 1-3): one big cross-section ───────────────────────────
   if (cuts <= 3 && !sliceDroop.length) {
-    const dropY = (cuts - 1) * 10; // cut1: 0, cut2: 10px, cut3: 20px lower
-    const bY = canvas.height - CAT_H + dropY;
+    const dropY = (cuts - 1) * 10;
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
-    ctx.drawImage(IMG_HALF, srcX, 0, srcWc, nH, fanX, bY, bigSliceW, CAT_H);
+    ctx.drawImage(IMG_HALF, srcX, 0, srcWc, nH, fanX, canvas.height - CAT_H + dropY, bigSliceW, CAT_H);
     ctx.restore();
     return;
   }
-
-  // ── STAGE 3 (cuts 4-7): fan, progressively larger ───────────────────────
   const fanH = FAN_H_ARR[cuts] || 162;
-  const sw   = csW(fanH);
-  const fsY  = canvas.height - fanH;
+  const sw = csW(fanH), fsY = canvas.height - fanH;
   for (let i = 0; i < cuts; i++) {
     const sx = fanX + (cuts - 1 - i) * SLICE_OVL_FAN;
-    const dy = sliceDroop[i] || 0;
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = 5; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 3;
-    ctx.drawImage(IMG_HALF, srcX, 0, srcWc, nH, sx, fsY + dy, sw, fanH);
+    ctx.drawImage(IMG_HALF, srcX, 0, srcWc, nH, sx, fsY + (sliceDroop[i]||0), sw, fanH);
     ctx.restore();
   }
 }
 
-// ── CLICK ─────────────────────────────────────────────────────────────────────
+function draw(sliceDroop) {
+  if (isMobile()) drawMobile();
+  else drawDesktop(sliceDroop || []);
+}
+
+// ── MINI PUN PUNS ────────────────────────────────────────────────────────────
+function spawnMiniPunPuns(x, y, count) {
+  for (let i = 0; i < (count || 3); i++) {
+    const el = document.createElement('img');
+    el.src = 'cat_half.webp'; el.className = 'mini-pun';
+    el.style.left = (x - 19) + 'px'; el.style.top = (y - 19) + 'px';
+    const angle = (Math.random() * 220 - 110) * Math.PI / 180;
+    const dist  = 55 + Math.random() * 100;
+    el.style.setProperty('--mx', Math.cos(angle) * dist + 'px');
+    el.style.setProperty('--my', (Math.sin(angle) * dist - 55) + 'px');
+    el.style.setProperty('--mr', (Math.random() * 720 - 360) + 'deg');
+    el.style.animationDuration = (0.45 + Math.random() * 0.25) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+}
+
+// ── CLICK ────────────────────────────────────────────────────────────────────
 canvas.addEventListener('click', e => {
   if (animating) return;
-  if (shieldActive) {
-    spawnFlt('🛡️ ЗАЩИТА!', e.clientX, e.clientY);
+  if (shieldActive) { spawnFlt('🛡️ ЗАЩИТА!', e.clientX, e.clientY); return; }
+  if (energy <= 0) {
+    spawnFlt('🥩 НЕТ МЯСА!', e.clientX, e.clientY);
+    energyNotified = false;
     return;
   }
 
-  spawnBlood(e.clientX, e.clientY, 7 + cuts);
+  energy--; updateEnergyUI(); energyNotified = false;
+
+  spawnBlood(e.clientX, e.clientY, 6 + cuts);
+  spawnMiniPunPuns(e.clientX, e.clientY, 2 + Math.floor(cuts / 2));
+
+  if (isMobile()) addMobileSlash();
 
   const earned = 1 + cuts * 2;
   score += earned;
@@ -390,153 +445,122 @@ canvas.addEventListener('click', e => {
   updateHUD();
 });
 
-// ── SLICE COMPLETE ────────────────────────────────────────────────────────────
+// ── SLICE COMPLETE ──────────────────────────────────────────────────────────
 function sliceComplete(cx, cy) {
-  animating = true;
-  totalSliced++;
+  animating = true; totalSliced++;
   const bonus = 50 + totalSliced * 15;
   score += bonus;
-
-  shakeScreen();
-  spawnBlood(cx, cy, 22);
-
+  shakeScreen(); spawnBlood(cx, cy, 20);
   const el = document.createElement('div');
   el.className = 'celebrate-txt';
   el.textContent = '🩸 НАРЕЗАНО! +' + bonus;
-  el.style.cssText = '';
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1900);
 
-  // Fly-apart: each slice falls with staggered speed
-  let t = 0;
-  const dropArr = new Array(cuts).fill(0);
-  function flyApart() {
-    t += 3;
-    for (let i = 0; i < dropArr.length; i++) {
-      dropArr[i] = t * (0.4 + i * 0.45);
+  if (isMobile()) {
+    // Mobile: flash sliced cat, then reset
+    showSliced();
+  } else {
+    let t = 0; const dropArr = new Array(cuts).fill(0);
+    function flyApart() {
+      t += 3;
+      for (let i = 0; i < dropArr.length; i++) dropArr[i] = t * (0.4 + i * 0.45);
+      drawDesktop(dropArr);
+      if (t < 65) requestAnimationFrame(flyApart); else showSliced();
     }
-    draw(dropArr); // body hidden during animation (sliceDroop truthy)
-    if (t < 65) requestAnimationFrame(flyApart);
-    else         showSliced();
+    requestAnimationFrame(flyApart);
   }
-  requestAnimationFrame(flyApart);
   updateHUD();
 }
 
 function showSliced() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (IMG_SLICED.naturalWidth) {
-    const scale = CAT_H / IMG_SLICED.naturalHeight;
-    const dw    = IMG_SLICED.naturalWidth * scale;
-    const sy    = canvas.height - CAT_H;
-    ctx.drawImage(IMG_SLICED, (canvas.width - dw) / 2, sy, dw, CAT_H);
-  }
-  setTimeout(reset, 950);
+  const img = IMG_SLICED.naturalWidth ? IMG_SLICED : IMG_FLAT;
+  const h   = canvas.height - 15;
+  const w   = Math.round(h * img.naturalWidth / img.naturalHeight);
+  ctx.drawImage(img, (canvas.width - w) / 2, 15, w, h);
+  setTimeout(reset, 900);
 }
 
 function reset() {
   cuts = 0; animating = false;
+  mobileSlashes.length = 0;
   draw(); renderDots(); updateHUD();
 }
 
-// ── GORE ──────────────────────────────────────────────────────────────────────
+// ── GORE ────────────────────────────────────────────────────────────────────
 function spawnBlood(x, y, count) {
   for (let i = 0; i < (count || 8); i++) {
-    const b = document.createElement('div');
-    b.className = 'blood';
-    const angle = (Math.random() * 260 - 130) * Math.PI / 180; // mostly upward cone
-    const dist  = 18 + Math.random() * 55;
-    const size  = 5 + Math.random() * 10;
+    const b = document.createElement('div'); b.className = 'blood';
+    const angle = (Math.random() * 260 - 130) * Math.PI / 180;
+    const dist = 18 + Math.random() * 55, size = 5 + Math.random() * 10;
     b.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;`
-      + `--bx:${Math.cos(angle)*dist}px;--by:${Math.sin(angle)*dist - 20}px;`
+      + `--bx:${Math.cos(angle)*dist}px;--by:${Math.sin(angle)*dist-20}px;`
       + `--br:${Math.random()*360}deg;animation-duration:${0.5+Math.random()*0.4}s;`;
-    document.body.appendChild(b);
-    setTimeout(() => b.remove(), 1100);
+    document.body.appendChild(b); setTimeout(() => b.remove(), 1100);
   }
 }
-
 function shakeScreen() {
-  document.body.classList.remove('screen-shake');
-  void document.body.offsetWidth; // reflow to restart
+  document.body.classList.remove('screen-shake'); void document.body.offsetWidth;
   document.body.classList.add('screen-shake');
   setTimeout(() => document.body.classList.remove('screen-shake'), 380);
 }
 
-// ── HUD ───────────────────────────────────────────────────────────────────────
+// ── HUD ─────────────────────────────────────────────────────────────────────
 function spawnFlt(text, x, y) {
   const el = document.createElement('div');
   el.className = 'flt';
   el.textContent = text;
   el.style.cssText = `left:${x}px;top:${y}px`;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 800);
+  document.body.appendChild(el); setTimeout(() => el.remove(), 800);
 }
-
 function renderDots() {
-  const el = document.getElementById('cutsDots');
-  el.innerHTML = '';
+  const el = document.getElementById('cutsDots'); el.innerHTML = '';
   for (let i = 0; i < MAX_CUTS; i++) {
     const d = document.createElement('div');
     d.className = 'cut-dot' + (i < cuts ? ' done' : '');
     el.appendChild(d);
   }
 }
-
-function fmt(n) {
-  return n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : n+'';
-}
-
-const CUT_MSGS = ['','ЕЩЁ!','КРАСИВО!','РЕЖЕТСЯ!','ПОЛОВИНА!','ЕЩЁ ЧУТЬ!','ПОСЛЕДНИЙ!','🎉 НАРЕЗАНО!'];
+function fmt(n) { return n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : n+''; }
+const CUT_MSGS = ['','ЕЩЁ!','КРАСИВО!','РЕЖЕТСЯ!','ПОЛОВИНА!','ЕЩЁ ЧУТЬ!','ПОСЛЕДНИЙ!','🎉'];
 function updateHUD() {
   document.getElementById('scoreNum').textContent = fmt(score);
   const msg = CUT_MSGS[Math.min(cuts, 7)];
-  document.getElementById('cutsStatus').textContent = cuts > 0 ? `🔪 ${cuts}/${MAX_CUTS}  ${msg}` : '';
+  document.getElementById('cutsStatus').textContent = cuts > 0 ? `🔪${cuts}/${MAX_CUTS} ${msg}` : '';
 }
 
-// ── SHOJI ─────────────────────────────────────────────────────────────────────
+// ── DECORATIONS ─────────────────────────────────────────────────────────────
 const shoji = document.getElementById('shoji');
-for (let i = 0; i < 12; i++) {
-  const c = document.createElement('div');
-  c.className = 'shoji-cell';
-  shoji.appendChild(c);
-}
-
-// ── BLOSSOMS ──────────────────────────────────────────────────────────────────
+for (let i = 0; i < 12; i++) { const c = document.createElement('div'); c.className = 'shoji-cell'; shoji.appendChild(c); }
 const wall = document.getElementById('wall');
 function spawnBlossom() {
-  const b = document.createElement('div');
-  b.className = 'blossom';
-  const s = 12 + Math.random() * 16; // 12–28px
+  const b = document.createElement('div'); b.className = 'blossom';
+  const s = 10 + Math.random() * 14;
   const colors = ['#ffb7c5','#ffccd5','#ff8fa3','#ffc8d8','#ffaabb'];
-  const color  = colors[Math.floor(Math.random() * colors.length)];
-  const shapes = [
-    'clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)',
-    'border-radius:60% 40% 60% 40% / 40% 60% 40% 60%',
-    'border-radius:50%',
-    'border-radius:50% 0 50% 0',
-  ];
-  const shapeCSS = shapes[Math.floor(Math.random() * shapes.length)];
+  const shapes = ['clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)','border-radius:50%','border-radius:50% 0 50% 0'];
   const dur = 5 + Math.random() * 7;
-  b.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;top:-30px;background:${color};${shapeCSS};animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
-  wall.appendChild(b);
-  setTimeout(() => b.remove(), (dur + 1) * 1000);
+  b.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;top:-30px;background:${colors[~~(Math.random()*5)]};${shapes[~~(Math.random()*3)]};animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
+  wall.appendChild(b); setTimeout(() => b.remove(), (dur+1)*1000);
 }
-setInterval(spawnBlossom, 600);
+setInterval(spawnBlossom, 700);
 
-// ── MOBILE SCALE ──────────────────────────────────────────────────────────────
+// ── SCALE ────────────────────────────────────────────────────────────────────
 function applyScale() {
-  const maxW = window.innerWidth * 0.98;
-  const scale = Math.min(1, maxW / canvas.width);
+  if (!canvas.width) return;
+  const vw = window.innerWidth;
+  const scale = Math.min(vw * 0.97 / canvas.width, isMobile() ? 1.6 : 1.0);
   canvas.style.transform = `translateX(-50%) scale(${scale})`;
   canvas.style.transformOrigin = 'bottom center';
   const dotsEl = document.getElementById('cutsDots');
-  dotsEl.style.transform = `translateX(-50%) scale(${scale})`;
+  dotsEl.style.transform = `translateX(-50%) scale(${Math.min(scale, 1.3)})`;
+  const energyEl = document.getElementById('energyWrap');
+  energyEl.style.transform = `translateX(-50%) scale(${Math.min(scale, 1.2)})`;
 }
-window.addEventListener('resize', applyScale);
+window.addEventListener('resize', () => { initCanvas(); draw(); applyScale(); });
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-renderDots();
-updateHUD();
+// ── INIT ─────────────────────────────────────────────────────────────────────
+renderDots(); updateHUD(); updateEnergyUI();
 </script>
 </body>
 </html>
