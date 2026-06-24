@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Pusheen Slicer</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+html, body { width:100%; height:100%; font-family:'Segoe UI',sans-serif; background:#f5e8d5; }
+/* NO overflow:hidden on body — it breaks position:fixed */
+
+/* ── TOP BAR ─────────────────────────────────────────────────────── */
+#topbar {
+  position:fixed; top:0; left:0; right:0; height:58px; z-index:500;
+  background:linear-gradient(135deg,#cc2222,#881111);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px;
+  box-shadow:0 3px 14px rgba(0,0,0,0.45);
+  border-bottom:3px solid rgba(255,80,80,.4);
+}
+.tb-title { font-size:20px; font-weight:900; color:#ffd700; letter-spacing:3px; text-shadow:2px 2px 0 rgba(0,0,0,.5); }
+.tb-mid   { font-size:14px; font-weight:bold; color:#fff; letter-spacing:1px; text-shadow:1px 1px 4px rgba(0,0,0,.4); }
+.tb-right { text-align:right; }
+.tb-val   { font-size:28px; font-weight:900; color:#fff; line-height:1; }
+.tb-lbl   { font-size:10px; color:rgba(255,255,200,.9); letter-spacing:2px; }
+
+/* ── SCENE ─────────────────────────────────────────────────────────── */
+.scene {
+  position:fixed; top:58px; left:0; right:0; bottom:0;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.wall {
+  flex:1; position:relative; overflow:hidden;
+  background:linear-gradient(180deg,#f5e8d5,#eddfc0);
+  min-height:0;
+}
+
+/* Shoji */
+.shoji {
+  position:absolute; top:14px; right:30px;
+  width:165px; height:132px;
+  background:rgba(255,248,235,.75); border:4px solid #8B5E3C; border-radius:4px;
+  display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(3,1fr);
+  overflow:hidden; box-shadow:4px 4px 12px rgba(0,0,0,.18);
+}
+.shoji-cell { border:2px solid #8B5E3C; background:rgba(255,250,240,.8); }
+.shoji-cell:nth-child(3n){ background:rgba(255,220,180,.35); }
+
+/* Lantern */
+.lantern { position:absolute; left:40px; top:4px; text-align:center; }
+.ln-str  { width:2px; height:18px; background:#5a3010; margin:0 auto; }
+.ln-cap  { width:46px; height:10px; background:#8a1515; border-radius:3px; margin:0 auto; }
+.ln-body {
+  width:38px; height:52px; margin:0 auto;
+  background:linear-gradient(135deg,#e8443a,#bb1a1a);
+  border-radius:50%/40%; border:2px solid #8a1515;
+  display:flex; align-items:center; justify-content:center;
+  color:#ffd700; font-size:19px; font-weight:bold;
+  text-shadow:0 0 8px rgba(255,200,0,.9);
+  box-shadow:0 0 16px rgba(220,50,30,.5);
+}
+.ln-tassel { width:5px; height:14px; background:#ffd700; margin:0 auto; border-radius:0 0 3px 3px; }
+
+/* Blossoms */
+.blossom {
+  position:absolute; pointer-events:none;
+  animation:floatB linear infinite;
+}
+@keyframes floatB {
+  0%   { transform:translateY(-30px) rotate(0deg); opacity:0; }
+  8%   { opacity:.75; }
+  88%  { opacity:.35; }
+  100% { transform:translateY(100vh) rotate(540deg); opacity:0; }
+}
+
+/* Counter */
+.counter { height:185px; position:relative; flex-shrink:0; }
+.counter-top {
+  position:absolute; top:0; left:0; right:0; height:24px;
+  background:linear-gradient(180deg,#d4954a,#b86e28);
+  border-top:4px solid #8B5E3C; box-shadow:0 4px 14px rgba(0,0,0,.3); z-index:2;
+}
+.counter-body {
+  position:absolute; top:24px; left:0; right:0; bottom:0;
+  background:linear-gradient(180deg,#9a5f38,#784020);
+}
+.counter-body::before {
+  content:''; position:absolute; inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0,transparent 36px,rgba(0,0,0,.04) 36px,rgba(0,0,0,.04) 38px);
+}
+.mat {
+  position:absolute; left:50px; top:-10px; width:160px; height:12px;
+  background:repeating-linear-gradient(90deg,#8fbc6a 0,#8fbc6a 11px,#6a9a4a 11px,#6a9a4a 13px);
+  border-radius:3px; border:1px solid #5a8a3a; z-index:5;
+}
+.sushi-row { position:absolute; top:-30px; left:62px; display:flex; gap:12px; z-index:5; }
+.nigiri { display:flex; flex-direction:column; align-items:center; }
+.nf { width:36px; height:14px; border-radius:3px; box-shadow:0 2px 4px rgba(0,0,0,.3); }
+.nr { width:32px; height:16px; background:#f8f4ec; border-radius:3px 3px 7px 7px; border:1px solid #ddd; }
+.fs{background:linear-gradient(135deg,#ff8c5a,#ee6030)} .ft{background:linear-gradient(135deg,#cc3355,#991122)} .fe{background:linear-gradient(135deg,#8B4513,#5a2d0c)}
+.soy { position:absolute; right:68px; top:-48px; width:22px; height:52px; background:linear-gradient(180deg,#cc2222,#991111); border-radius:7px 7px 3px 3px; border:2px solid #771111; z-index:5; }
+.soy::before { content:''; position:absolute; top:-9px; left:50%; transform:translateX(-50%); width:9px; height:13px; background:#555; border-radius:3px 3px 0 0; }
+.chops { position:absolute; right:105px; top:-34px; z-index:5; transform:rotate(-15deg); }
+.chop { width:4px; height:44px; background:linear-gradient(180deg,#f5d090,#c8902a); border-radius:2px; display:inline-block; margin:0 2px; }
+
+/* ── CANVAS ─────────────────────────────────────────────────────────── */
+#catCanvas {
+  position:fixed; bottom:161px; left:50%; transform:translateX(-50%);
+  cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Cpolygon points='2,34 7,29 26,10 31,15 12,34' fill='%23c8c8c8' stroke='%23666' stroke-width='1.2'/%3E%3Crect x='24' y='1' width='11' height='8' rx='2' fill='%23a07030' stroke='%23704010' stroke-width='1'/%3E%3C/svg%3E") 2 34, crosshair;
+  z-index:10;
+}
+
+/* ── DOTS ─────────────────────────────────────────────────────────── */
+.cuts-track {
+  position:fixed; bottom:143px; left:50%; transform:translateX(-50%);
+  display:flex; gap:6px; z-index:20;
+}
+.cut-dot { width:15px; height:15px; border-radius:50%; background:#d4a574; border:3px solid #8B5E3C; transition:all .18s; }
+.cut-dot.done { background:#cc2222; border-color:#881111; box-shadow:0 0 7px rgba(200,30,30,.7); transform:scale(1.2); }
+
+
+/* ── FX ─────────────────────────────────────────────────────────── */
+@keyframes floUp { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-72px) scale(1.45)} }
+.flt { position:fixed; font-size:22px; font-weight:900; color:#cc2222; pointer-events:none; animation:floUp .75s ease-out forwards; z-index:999; text-shadow:0 2px 6px rgba(0,0,0,.35); }
+
+@keyframes cel { 0%{opacity:0;transform:translateX(-50%) scale(.3) rotate(-8deg)} 25%{opacity:1;transform:translateX(-50%) scale(1.3) rotate(4deg)} 70%{opacity:1;transform:translateX(-50%) scale(1.1)} 100%{opacity:0;transform:translateX(-50%) scale(.85) translateY(-30px)} }
+.celebrate-txt { position:fixed; left:50%; top:70px; font-size:36px; font-weight:900; color:#cc2222; text-shadow:3px 3px 0 #ffd700,0 0 16px rgba(255,100,0,.7); animation:cel 1.8s ease-out forwards; pointer-events:none; z-index:999; white-space:nowrap; }
+
+/* ── GORE ─────────────────────────────────────────────────────────── */
+@keyframes bloodFly {
+  0%   { opacity:1; transform:translate(0,0) scale(1) rotate(var(--br)); }
+  100% { opacity:0; transform:translate(var(--bx),var(--by)) scale(0.15) rotate(var(--br)); }
+}
+.blood {
+  position:fixed; pointer-events:none; z-index:997; border-radius:50% 40% 60% 30%;
+  background:radial-gradient(circle at 30% 30%, #ff4422, #990000);
+  animation:bloodFly 0.7s cubic-bezier(.1,.8,.3,1) forwards;
+}
+@keyframes shake {
+  0%  {transform:translate(0,0) rotate(0)}
+  15% {transform:translate(-6px,-4px) rotate(-.4deg)}
+  30% {transform:translate(6px,4px) rotate(.4deg)}
+  45% {transform:translate(-5px,2px) rotate(-.3deg)}
+  60% {transform:translate(5px,-2px) rotate(.3deg)}
+  80% {transform:translate(-2px,1px) rotate(-.1deg)}
+  100%{transform:translate(0,0) rotate(0)}
+}
+.screen-shake { animation:shake 0.35s ease-out; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="tb-title">🔪 PUSHEEN SLICER</div>
+  <div class="tb-mid" id="cutsStatus"></div>
+  <div class="tb-right">
+    <div class="tb-val" id="scoreNum">0</div>
+    <div class="tb-lbl">🍖 КУСОЧКОВ</div>
+  </div>
+</div>
+
+<div class="scene">
+  <div class="wall" id="wall">
+    <div class="lantern">
+      <div class="ln-str"></div>
+      <div class="ln-cap"></div>
+      <div class="ln-body">寿</div>
+      <div class="ln-cap"></div>
+      <div class="ln-tassel"></div>
+    </div>
+    <div class="shoji" id="shoji"></div>
+  </div>
+  <div class="counter">
+    <div class="counter-top"></div>
+    <div class="counter-body"></div>
+    <div class="mat"></div>
+    <div class="sushi-row">
+      <div class="nigiri"><div class="nf fs"></div><div class="nr"></div></div>
+      <div class="nigiri"><div class="nf ft"></div><div class="nr"></div></div>
+      <div class="nigiri"><div class="nf fe"></div><div class="nr"></div></div>
+    </div>
+    <div class="soy"></div>
+    <div class="chops"><span class="chop"></span><span class="chop" style="transform:rotate(5deg)"></span></div>
+  </div>
+</div>
+
+<canvas id="catCanvas"></canvas>
+<div class="cuts-track" id="cutsDots"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const MAX_CUTS     = 7;
+const CAT_H        = 215;  // display height
+const SLICE_OVERLAP = 36;  // px each slice peeks from behind the next
+
+// Where each cut happens as a fraction of image width
+// Cut fracs from RIGHT side — max 0.62 so head/face never gets sliced off
+const CUT_FRAC = [0.10, 0.18, 0.27, 0.36, 0.45, 0.54, 0.62];
+
+let cuts        = 0;
+let score       = 0;
+let totalSliced = 0;
+let animating   = false;
+
+// ── IMAGES ───────────────────────────────────────────────────────────────────
+const IMG_SIT    = new Image(); IMG_SIT.src    = 'cat_sit.webp';
+const IMG_FLAT   = new Image(); IMG_FLAT.src   = 'cat_lie.webp';  // lying Pusheen — body
+const IMG_HALF   = new Image(); IMG_HALF.src   = 'cat_half.webp'; // cross-section slices
+const IMG_SLICED = new Image(); IMG_SLICED.src = 'cat_sliced.webp';
+
+const canvas = document.getElementById('catCanvas');
+const ctx    = canvas.getContext('2d');
+
+// cat_half.webp = sticker with LEFT: cat front half, RIGHT: meat cross-section
+// For stage 2 we show the FULL sticker. For stage 3 we crop just the cross-section.
+const HALF_CROP_X = 0.63;
+const SLICE_H_FAN   = 155;
+const SLICE_OVL_FAN = 28;
+
+function stickerW() { // full sticker display width at CAT_H
+  return IMG_HALF.naturalWidth
+    ? Math.round(CAT_H * IMG_HALF.naturalWidth / IMG_HALF.naturalHeight)
+    : Math.round(CAT_H * 2.75);
+}
+function csW(h) { // cross-section crop width at height h
+  if (!IMG_HALF.naturalWidth) return Math.round(h * 0.75);
+  const cw = IMG_HALF.naturalWidth * (1 - HALF_CROP_X);
+  return Math.round(h * cw / IMG_HALF.naturalHeight);
+}
+function loafW() {
+  return IMG_FLAT.naturalWidth
+    ? Math.round(CAT_H * IMG_FLAT.naturalWidth / IMG_FLAT.naturalHeight)
+    : Math.round(CAT_H * 1.6);
+}
+
+function initCanvas() {
+  const bigSliceW = csW(CAT_H);
+  const fanTotalW = (MAX_CUTS - 1) * SLICE_OVL_FAN + csW(215); // 215 = max fan height
+  canvas.width  = loafW() + Math.max(bigSliceW, fanTotalW) + 80;
+  canvas.height = CAT_H + 15;
+}
+
+const onImgLoad = () => { initCanvas(); draw(); };
+IMG_FLAT.onload = onImgLoad;
+IMG_HALF.onload = onImgLoad;
+IMG_SIT.onload  = onImgLoad;
+
+// fan height per cut count (4-7 progressively bigger)
+const FAN_H_ARR = [0, 0, 0, 0, 162, 180, 198, 215];
+
+// ── MAIN DRAW ─────────────────────────────────────────────────────────────────
+function draw(sliceDroop) {
+  sliceDroop = sliceDroop || [];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!IMG_FLAT.naturalWidth || !IMG_HALF.naturalWidth) return;
+
+  const catY   = canvas.height - CAT_H;
+  const lw     = loafW();
+  const bigSliceW = csW(CAT_H);
+  const fanTotalW = (MAX_CUTS - 1) * SLICE_OVL_FAN + csW(215);
+  const ox     = Math.round((canvas.width - lw - Math.max(bigSliceW, fanTotalW)) / 2);
+
+  const cutFrac  = cuts > 0 ? CUT_FRAC[cuts - 1] : 0;
+  const bodyW    = Math.round((1 - cutFrac) * lw);
+  const dispW    = cuts === 0 ? lw : bodyW;
+  const cutEdgeX = ox + dispW;
+
+  // ── Body ────────────────────────────────────────────────────────────────
+  if (!sliceDroop.length) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(ox, catY, dispW, CAT_H); ctx.clip();
+    ctx.drawImage(IMG_FLAT, 0, 0, IMG_FLAT.naturalWidth, IMG_FLAT.naturalHeight, ox, catY, lw, CAT_H);
+    ctx.restore();
+  }
+
+  if (cuts === 0) return;
+
+  const nW = IMG_HALF.naturalWidth, nH = IMG_HALF.naturalHeight;
+  const srcX = Math.round(nW * HALF_CROP_X), srcWc = nW - srcX;
+  const fanX = cutEdgeX - 22; // 22px overlap to cover seam
+
+  // ── STAGE 2 (cuts 1-3): one big cross-section ───────────────────────────
+  if (cuts <= 3 && !sliceDroop.length) {
+    const dropY = (cuts - 1) * 10; // cut1: 0, cut2: 10px, cut3: 20px lower
+    const bY = canvas.height - CAT_H + dropY;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
+    ctx.drawImage(IMG_HALF, srcX, 0, srcWc, nH, fanX, bY, bigSliceW, CAT_H);
+    ctx.restore();
+    return;
+  }
+
+  // ── STAGE 3 (cuts 4-7): fan, progressively larger ───────────────────────
+  const fanH = FAN_H_ARR[cuts] || 162;
+  const sw   = csW(fanH);
+  const fsY  = canvas.height - fanH;
+  for (let i = 0; i < cuts; i++) {
+    const sx = fanX + (cuts - 1 - i) * SLICE_OVL_FAN;
+    const dy = sliceDroop[i] || 0;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = 5; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 3;
+    ctx.drawImage(IMG_HALF, srcX, 0, srcWc, nH, sx, fsY + dy, sw, fanH);
+    ctx.restore();
+  }
+}
+
+// ── CLICK ─────────────────────────────────────────────────────────────────────
+canvas.addEventListener('click', e => {
+  if (animating) return;
+
+  spawnBlood(e.clientX, e.clientY, 7 + cuts);
+
+  const earned = 1 + cuts * 2;
+  score += earned;
+  spawnFlt('+' + earned + ' 🍖', e.clientX, e.clientY);
+
+  if (cuts < MAX_CUTS) {
+    cuts++;
+    renderDots();
+    draw();
+    if (cuts >= MAX_CUTS) sliceComplete(e.clientX, e.clientY);
+  }
+  updateHUD();
+});
+
+// ── SLICE COMPLETE ────────────────────────────────────────────────────────────
+function sliceComplete(cx, cy) {
+  animating = true;
+  totalSliced++;
+  const bonus = 50 + totalSliced * 15;
+  score += bonus;
+
+  shakeScreen();
+  spawnBlood(cx, cy, 22);
+
+  const el = document.createElement('div');
+  el.className = 'celebrate-txt';
+  el.textContent = '🩸 НАРЕЗАНО! +' + bonus;
+  el.style.cssText = '';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1900);
+
+  // Fly-apart: each slice falls with staggered speed
+  let t = 0;
+  const dropArr = new Array(cuts).fill(0);
+  function flyApart() {
+    t += 3;
+    for (let i = 0; i < dropArr.length; i++) {
+      dropArr[i] = t * (0.4 + i * 0.45);
+    }
+    draw(dropArr); // body hidden during animation (sliceDroop truthy)
+    if (t < 65) requestAnimationFrame(flyApart);
+    else         showSliced();
+  }
+  requestAnimationFrame(flyApart);
+  updateHUD();
+}
+
+function showSliced() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (IMG_SLICED.naturalWidth) {
+    const scale = CAT_H / IMG_SLICED.naturalHeight;
+    const dw    = IMG_SLICED.naturalWidth * scale;
+    const sy    = canvas.height - CAT_H;
+    ctx.drawImage(IMG_SLICED, (canvas.width - dw) / 2, sy, dw, CAT_H);
+  }
+  setTimeout(reset, 950);
+}
+
+function reset() {
+  cuts = 0; animating = false;
+  draw(); renderDots(); updateHUD();
+}
+
+// ── GORE ──────────────────────────────────────────────────────────────────────
+function spawnBlood(x, y, count) {
+  for (let i = 0; i < (count || 8); i++) {
+    const b = document.createElement('div');
+    b.className = 'blood';
+    const angle = (Math.random() * 260 - 130) * Math.PI / 180; // mostly upward cone
+    const dist  = 18 + Math.random() * 55;
+    const size  = 5 + Math.random() * 10;
+    b.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;`
+      + `--bx:${Math.cos(angle)*dist}px;--by:${Math.sin(angle)*dist - 20}px;`
+      + `--br:${Math.random()*360}deg;animation-duration:${0.5+Math.random()*0.4}s;`;
+    document.body.appendChild(b);
+    setTimeout(() => b.remove(), 1100);
+  }
+}
+
+function shakeScreen() {
+  document.body.classList.remove('screen-shake');
+  void document.body.offsetWidth; // reflow to restart
+  document.body.classList.add('screen-shake');
+  setTimeout(() => document.body.classList.remove('screen-shake'), 380);
+}
+
+// ── HUD ───────────────────────────────────────────────────────────────────────
+function spawnFlt(text, x, y) {
+  const el = document.createElement('div');
+  el.className = 'flt';
+  el.textContent = text;
+  el.style.cssText = `left:${x}px;top:${y}px`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 800);
+}
+
+function renderDots() {
+  const el = document.getElementById('cutsDots');
+  el.innerHTML = '';
+  for (let i = 0; i < MAX_CUTS; i++) {
+    const d = document.createElement('div');
+    d.className = 'cut-dot' + (i < cuts ? ' done' : '');
+    el.appendChild(d);
+  }
+}
+
+function fmt(n) {
+  return n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : n+'';
+}
+
+const CUT_MSGS = ['','ЕЩЁ!','КРАСИВО!','РЕЖЕТСЯ!','ПОЛОВИНА!','ЕЩЁ ЧУТЬ!','ПОСЛЕДНИЙ!','🎉 НАРЕЗАНО!'];
+function updateHUD() {
+  document.getElementById('scoreNum').textContent = fmt(score);
+  const msg = CUT_MSGS[Math.min(cuts, 7)];
+  document.getElementById('cutsStatus').textContent = cuts > 0 ? `🔪 ${cuts}/${MAX_CUTS}  ${msg}` : '';
+}
+
+// ── SHOJI ─────────────────────────────────────────────────────────────────────
+const shoji = document.getElementById('shoji');
+for (let i = 0; i < 12; i++) {
+  const c = document.createElement('div');
+  c.className = 'shoji-cell';
+  shoji.appendChild(c);
+}
+
+// ── BLOSSOMS ──────────────────────────────────────────────────────────────────
+const wall = document.getElementById('wall');
+function spawnBlossom() {
+  const b = document.createElement('div');
+  b.className = 'blossom';
+  const s = 12 + Math.random() * 16; // 12–28px
+  const colors = ['#ffb7c5','#ffccd5','#ff8fa3','#ffc8d8','#ffaabb'];
+  const color  = colors[Math.floor(Math.random() * colors.length)];
+  const shapes = [
+    'clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)',
+    'border-radius:60% 40% 60% 40% / 40% 60% 40% 60%',
+    'border-radius:50%',
+    'border-radius:50% 0 50% 0',
+  ];
+  const shapeCSS = shapes[Math.floor(Math.random() * shapes.length)];
+  const dur = 5 + Math.random() * 7;
+  b.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;top:-30px;background:${color};${shapeCSS};animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
+  wall.appendChild(b);
+  setTimeout(() => b.remove(), (dur + 1) * 1000);
+}
+setInterval(spawnBlossom, 600);
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderDots();
+updateHUD();
+</script>
+</body>
+</html>
